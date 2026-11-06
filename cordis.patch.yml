@@ -1,0 +1,16 @@
+# dsh-purge-compose bundle patch
+#
+# 全部行为开关走 config，改完重启 Harness 生效。
+#   mode: observe = 只观测不注入（默认，零风险） / write = 真注入 / off = 停用
+#   refuseStrategy: 拒答策略单写 —— community | genx（另一家降级为观测）
+- insert:
+    - id: dsh-purge-compose
+      name: dsh-purge-compose
+      config:
+        mode: observe
+        matrix:
+          redteam: community
+          unrestricted: community
+          research: genx
+          default: none
+        refuseStrategy: community
