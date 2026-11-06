@@ -37,5 +37,20 @@
   "scripts": {
     "test": "node --test"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnx438-hub/dsh-prompt-sections.git"
+  },
+  "homepage": "https://github.com/johnx438-hub/dsh-prompt-sections#readme",
+  "bugs": {
+    "url": "https://github.com/johnx438-hub/dsh-prompt-sections/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "system-prompt",
+    "sections",
+    "observability"
+  ]
 }
