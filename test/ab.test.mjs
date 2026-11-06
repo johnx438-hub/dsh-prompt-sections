@@ -185,3 +185,15 @@ test("metric=codeblocks：比较每轮代码块数", () => {
   assert.equal(c.metric, "codeblocks");
   assert.ok(c.b.mean > c.a.mean);
 });
+
+test("compose_ab：按 model 过滤", () => {
+  const mk = (ts, model, bad) => ({ ts, verdict: bad ? "refusal" : "pass", combined: bad ? "refusal" : "pass", preset: "p", model, len: 500, structure: "prose" });
+  const records = [
+    ...Array.from({ length: 30 }, (_, i) => mk(new Date(Date.parse("2026-11-05T10:00:00Z") + i * 1000).toISOString(), "deepseek-flash", i < 3)),
+    ...Array.from({ length: 30 }, (_, i) => mk(new Date(Date.parse("2026-11-05T11:00:00Z") + i * 1000).toISOString(), "claude-sonnet", i < 10)),
+  ];
+  const all = compareWindows(records, { splitAt: "2026-11-05T10:30:00Z", windowDays: 5, minTurns: 10, now });
+  const only = compareWindows(records, { splitAt: "2026-11-05T10:30:00Z", windowDays: 5, minTurns: 10, now, model: "claude-sonnet" });
+  assert.equal(all.a.turns + all.b.turns, 60);
+  assert.equal(only.a.turns + only.b.turns, 30, "只应保留该模型的轮次");
+});

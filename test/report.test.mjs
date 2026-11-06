@@ -66,3 +66,16 @@ test("汇总：按 preset 分组", () => {
   assert.equal(s.presets.unrestricted.turns, 1);
   assert.match(formatReport(s), /presets:/);
 });
+
+test("汇总：按 model 分组", () => {
+  const recs = [
+    { ts: new Date(now).toISOString(), verdict: "pass", combined: "pass", model: "deepseek-flash", preset: "p" },
+    { ts: new Date(now).toISOString(), verdict: "refusal", combined: "refusal", model: "deepseek-flash", preset: "p" },
+    { ts: new Date(now).toISOString(), verdict: "pass", combined: "pass", model: "claude-sonnet", preset: "p" },
+  ];
+  const s = summarizeRecords(recs, { now });
+  assert.equal(s.models["deepseek-flash"].turns, 2);
+  assert.equal(s.models["deepseek-flash"].refusal, 1);
+  assert.equal(s.models["claude-sonnet"].turns, 1);
+  assert.match(formatReport(s), /models:/);
+});

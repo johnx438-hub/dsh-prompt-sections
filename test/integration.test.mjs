@@ -357,3 +357,21 @@ test("extras：开关打开才注册机制段，且记录在 report.extras", asy
   assert.ok(!names.includes("compose:plainSpeech"), "没开的段不应注册");
   assert.equal(report.extras.length, 2);
 });
+
+test("verdict 记录带 model；拿不到时落一条 ctx-probe（只记键名）", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "compose-int18-"));
+  const host = fakeHost(root);
+  register(host.ctx, makeConfig(root));
+  const kernel = host.sections.find((s) => s.name === "compose:kernel");
+  // 带 model 的 context
+  kernel.text({ agent: { model: "deepseek-flash", ctx: { get: (k) => (k === "agentPresets" ? { composedPreset: () => "cold-deep-scout" } : null) } } });
+  const onEvent = host.handlers.get("session/event");
+  onEvent({}, { type: "user/message" });
+  onEvent({}, { y: 1 });
+  // 无 model 的 context 触发一次 ctx-probe
+  kernel.text({ agent: { ctx: { get: (k) => (k === "agentPresets" ? { composedPreset: () => "cold-deep-scout" } : null) } } });
+  const lines = readFileSync(path.join(root, "armor.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const probe = lines.find((l) => l.type === "ctx-probe");
+  if (probe) assert.ok(Array.isArray(probe.shape.agent), "ctx-probe 应只含键名");
+  assert.ok(!JSON.stringify(lines).includes("secret"), "不应出现任何值");
+});

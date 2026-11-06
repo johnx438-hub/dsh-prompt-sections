@@ -500,6 +500,7 @@ config:
 | 0.22.0 | `since`/`until` 按题分窗；记录带 `signals`；新增 `metric: codeblocks` |
 | 0.22.1 | 去重策略收紧（两边都有 digest 时以 digest 为准），T3 的敏感性分析写进 README |
 | 0.23.0 | `config.extras` 三个可选机制段（拒绝六形态 / 口语直通 / 模式保持），默认关 |
+| 0.24.0 | verdict 记 `model`；`ctx-probe` 形状诊断；report/ab 支持按模型分组与过滤 |
 
 ## 测试
 
@@ -527,6 +528,18 @@ Copy-Item -Recurse C:\Users\jawn\.dsh\profiles\desktop.bak-v011-20261024-024527 
 
 这仍然是越狱/破甲类工具。本仓只改**工程结构**（可观测、可实现、抗升级），**不改变它能产出什么** —— 可观测性提升不等于风险下降。
 
+
+
+## 0.24.0：verdict 记录带 `model`（换模型实验的前提）
+
+之前账本只有 `preset`，换模型做实验只能人工分窗。现在：
+
+- 每条 verdict 记录带 `model`（从 context 的多层候选里取：`agent.model` → `agent.route.model` → `session.header.config.model` …，取不到就是 `null`，不猜）；
+- 取不到时**只落一次** `{"type":"ctx-probe","shape":{…}}` —— 形状诊断只记键名、不记值，用来定位真实字段在哪；
+- `compose_report` 增加 `models:` 分组；
+- `compose_ab { model: "…" }` 按模型过滤（窗口模式与 byVariant 模式都支持）。
+
+这一版的目的是让下一轮「换一个有拒答倾向的模型」的实验能直接出「模型 × 变体」两维对比表，而不是靠人工对齐时间点。
 
 ## 0.23.0：可移植机制段（默认关）
 
