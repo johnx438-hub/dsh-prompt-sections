@@ -389,3 +389,21 @@ test("所有注册的工具 parameters 都是可被严格上游接受的 JSON Sc
   }
   assert.deepEqual(bad, [], "以下工具的参数 schema 会被严格 provider 拒绝: " + JSON.stringify(bad));
 });
+
+test("model：从 assembly.variables 取 provider/model，写进 verdict 记录", async () => {
+  const root = mkdtempSync(path.join(tmpdir(), "compose-int20-"));
+  const host = fakeHost(root);
+  register(host.ctx, makeConfig(root));
+  const session = {};
+  const ctx = { agent: { session, ctx: { get: (k) => (k === "agentPresets" ? { composedPreset: () => "cold-deep-scout" } : null) } } };
+  const kernel = host.sections.find((s) => s.name === "compose:kernel");
+  kernel.text(ctx);
+  const assembly = { sections: [{ name: "compose:kernel", text: "x" }], variables: { provider: "moonshotai-cn", model: "kimi-k3" } };
+  await host.handlers.get("system-prompt/assemble")(assembly, ctx, async () => assembly);
+  const onEvent = host.handlers.get("session/event");
+  onEvent(session, { type: "user/message" });
+  onEvent(session, { type: "assistant/message", data: { message: { content: "ok" } } });
+  const lines = readFileSync(path.join(root, "armor.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const rec = lines.find((l) => l.verdict);
+  assert.equal(rec.model, "moonshotai-cn/kimi-k3");
+});
