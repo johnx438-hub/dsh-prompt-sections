@@ -375,3 +375,17 @@ test("verdict 记录带 model；拿不到时落一条 ctx-probe（只记键名�
   if (probe) assert.ok(Array.isArray(probe.shape.agent), "ctx-probe 应只含键名");
   assert.ok(!JSON.stringify(lines).includes("secret"), "不应出现任何值");
 });
+
+test("所有注册的工具 parameters 都是可被严格上游接受的 JSON Schema（防 400）", async () => {
+  const { checkToolParameters } = await import("../lib/tool-schema.js");
+  const root = mkdtempSync(path.join(tmpdir(), "compose-int19-"));
+  const host = fakeHost(root);
+  register(host.ctx, makeConfig(root));
+  assert.ok(host.tools.length >= 6, "应有 6 个工具");
+  const bad = [];
+  for (const tool of host.tools) {
+    const issues = checkToolParameters(tool.parameters);
+    if (issues.length) bad.push({ name: tool.name, issues });
+  }
+  assert.deepEqual(bad, [], "以下工具的参数 schema 会被严格 provider 拒绝: " + JSON.stringify(bad));
+});

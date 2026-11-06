@@ -501,6 +501,7 @@ config:
 | 0.22.1 | 去重策略收紧（两边都有 digest 时以 digest 为准），T3 的敏感性分析写进 README |
 | 0.23.0 | `config.extras` 三个可选机制段（拒绝六形态 / 口语直通 / 模式保持），默认关 |
 | 0.24.0 | verdict 记 `model`；`ctx-probe` 形状诊断；report/ab 支持按模型分组与过滤 |
+| 0.24.1 | 修严格 provider 的 400：工具参数统一编译成 JSON Schema + 回归测试 |
 
 ## 测试
 
@@ -529,6 +530,33 @@ Copy-Item -Recurse C:\Users\jawn\.dsh\profiles\desktop.bak-v011-20261024-024527 
 这仍然是越狱/破甲类工具。本仓只改**工程结构**（可观测、可实现、抗升级），**不改变它能产出什么** —— 可观测性提升不等于风险下降。
 
 
+
+
+## 0.24.1：修 400 —— 工具参数必须是严格 JSON Schema
+
+**症状**：切到严格校验的上游（Moonshot/Kimi、OpenAI 等）直接
+
+```
+400: {"message":"Invalid request: tools.function.parameters.type is required and must be \"object\""}
+```
+
+**根因**：宿主有两条工具注册路径——
+
+| 路径 | parameters 形状 | 发给上游的是 |
+|---|---|---|
+| `ctx.tools.register(defineTool({…}))` | 属性映射 `{ lead: {type:'boolean', required:true} }` | **编译后**的 JSON Schema |
+| `ctx.tools.register({ parameters: {…} })`（本插件早期写法） | 同上 | **原样**发出去 → 缺 `type:"object"` |
+
+DeepSeek 端宽容，所以一直没暴露；换 Moonshot 就 400。
+
+**修法**：所有工具参数统一过 `lib/tool-schema.js` 的 `toJsonSchema()`（抽出 `required` 数组、补 `type/properties/additionalProperties`），并加一条回归测试：**注册完成后逐个工具校验 parameters，任何缺失 type/items 都算测试失败**。
+
+实测对照（Mimoonshot `kimi-k3`，同一请求只换 tools.parameters）：
+
+```
+旧：属性映射（无 type）   → 400 Invalid request: …parameters.type is required…
+新：toJsonSchema 产物     → 200
+```
 
 ## 0.24.0：verdict 记录带 `model`（换模型实验的前提）
 

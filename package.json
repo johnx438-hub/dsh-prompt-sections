@@ -1,6 +1,6 @@
 {
   "name": "dsh-purge-compose",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "复合破甲插件：预设面 + 可测量面（armor 观测 / 载荷仲裁 / 规则审计 / 装配校验 / 破甲率告警 / 双轨判定 / shadow 规则 / 跨卷汇总）",
   "type": "module",
   "main": "lib/index.js",
@@ -28,7 +28,7 @@
   "dsh": {
     "id": "dsh-purge-compose",
     "name": "破甲复合",
-    "version": "0.24.0",
+    "version": "0.24.1",
     "permissions": "系统提示词注入（write 模式）, 会话投影（只读观测）, 宿主包只读扫描（compose_audit）",
     "bundle": {
       "patch": "./cordis.patch.yml"
