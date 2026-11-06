@@ -1,6 +1,0 @@
-fix(0.24.1): 工具参数统一编译为 JSON Schema，修严格 provider 的 400
-
-- 新增 lib/tool-schema.js：toJsonSchema / checkToolParameters
-- 6 个工具全部改走 toJsonSchema：原来的属性映射缺 type:"object"，Moonshot/Kimi 直接 400
-- 新增回归测试：注册后逐个工具校验 parameters（缺 type/items 即失败）
-- 实测对照：旧形状 400 "parameters.type is required" / 新形状 200（kimi-k3）
